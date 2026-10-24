@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rising Sun of Wisdom in Background of Book -->
+    <!-- Sun disk -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M54,28 A12,12 0 1,0 54,52 A12,12 0 1,0 54,28 Z" />
+
+    <!-- Radiant Sun Rays -->
+    <path
+        android:fillColor="#FFE082"
+        android:pathData="M52,20 L56,20 L56,25 L52,25 Z
+                          M40,24 L43,21 L46,24 L43,27 Z
+                          M65,21 L68,24 L65,27 L62,24 Z
+                          M32,34 L35,32 L37,35 L34,37 Z
+                          M73,32 L76,34 L74,37 L71,35 Z" />
+
+    <!-- Open Book Pages (Left and Right Wings) -->
+    <!-- Left Page Base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M53,52 C45,50 36,52 30,56 C29,56.7 28.5,57.6 28.5,58.7 L28.5,75 C28.5,76 29.5,76.8 30.5,76.5 C36.5,73 45,71.5 53,74 L53,52 Z" />
+
+    <!-- Right Page Base -->
+    <path
+        android:fillColor="#F0F4EF"
+        android:pathData="M55,52 C63,50 72,52 78,56 C79,56.7 79.5,57.6 79.5,58.7 L79.5,75 C79.5,76 78.5,76.8 77.5,76.5 C71.5,73 63,71.5 55,74 L55,52 Z" />
+
+    <!-- Book Spine / Center Bookmark -->
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M52.5,51 L55.5,51 L55.5,77 L54,75.5 L52.5,77 Z" />
+
+    <!-- Lines of Wisdom on Left Page -->
+    <path
+        android:fillColor="#C8E6C9"
+        android:pathData="M34,60 C38,58.5 44,58 48,59 L48,61 C44,60 38,60.5 34,62 Z
+                          M34,65 C38,63.5 44,63 48,64 L48,66 C44,65 38,65.5 34,67 Z" />
+
+    <!-- Lines of Wisdom on Right Page -->
+    <path
+        android:fillColor="#C8E6C9"
+        android:pathData="M60,59 C64,58 70,58.5 74,60 L74,62 C70,60.5 64,60 60,61 Z
+                          M60,64 C64,63 70,63.5 74,65 L74,67 C70,65.5 64,65 60,66 Z" />
+
+    <!-- Sparkle of Enlightenment at Top -->
+    <path
+        android:fillColor="#FFF9C4"
+        android:pathData="M54,34 L55.5,38.5 L60,40 L55.5,41.5 L54,46 L52.5,41.5 L48,40 L52.5,38.5 Z" />
+
+</vector>

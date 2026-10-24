@@ -1,0 +1,143 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'kedretech@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isOwner(userId) &&
+        request.resource.data.uid == userId &&
+        (request.resource.data.role == 'user' || isAdmin()) &&
+        request.resource.data.fullName is string && request.resource.data.fullName.size() <= 100 &&
+        request.resource.data.email is string && request.resource.data.email.size() <= 100 &&
+        request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time;
+
+      allow update: if (isOwner(userId) || isAdmin()) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        // Non-admins cannot elevate their own role
+        (isAdmin() || request.resource.data.role == resource.data.role) &&
+        request.resource.data.fullName is string && request.resource.data.fullName.size() <= 100 &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fullName', 'photoURL', 'status', 'role', 'updatedAt']);
+
+      allow delete: if isAdmin();
+    }
+
+    // 2. Advice collection
+    match /advice/{adviceId} {
+      // Public / users can read published advice; admins can read all
+      allow get: if (resource.data.published == true) || isAdmin();
+      allow list: if (resource.data.published == true) || isAdmin();
+
+      allow create: if isAdmin() &&
+        request.resource.data.title is string && request.resource.data.title.size() <= 200 &&
+        request.resource.data.advice is string && request.resource.data.advice.size() <= 5000 &&
+        request.resource.data.dailyAction is string && request.resource.data.dailyAction.size() <= 500 &&
+        request.resource.data.category is string && request.resource.data.category.size() <= 100 &&
+        request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time;
+
+      allow update: if (isAdmin() || (
+        // Allow users to increment reaction or comment counters without modifying advice text
+        isSignedIn() &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.advice == resource.data.advice &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount', 'commentCount', 'updatedAt'])
+      ));
+
+      allow delete: if isAdmin();
+    }
+
+    // 3. Reactions collection
+    match /reactions/{reactionId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.adviceId is string &&
+        request.resource.data.reactionType in ['like', 'love', 'helpful', 'inspirational'] &&
+        request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time;
+
+      allow update: if isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.adviceId == resource.data.adviceId &&
+        request.resource.data.reactionType in ['like', 'love', 'helpful', 'inspirational'] &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionType', 'updatedAt']);
+
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // 4. Comments collection
+    match /comments/{commentId} {
+      allow get, list: if isSignedIn() || resource.data.status == 'visible';
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.adviceId is string &&
+        request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000 &&
+        request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time;
+
+      allow update: if isSignedIn() && (
+        (resource.data.userId == request.auth.uid &&
+         request.resource.data.userId == resource.data.userId &&
+         request.resource.data.adviceId == resource.data.adviceId &&
+         request.resource.data.text is string && request.resource.data.text.size() <= 1000 &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])) ||
+        (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
+      );
+
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // 5. Favorites collection
+    match /favorites/{favoriteId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.adviceId is string &&
+        request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time;
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // 6. Reports collection
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 7. Admins collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile in the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "email", "role", "createdAt"]
+    },
+    "AdvicePost": {
+      "title": "AdvicePost",
+      "description": "Daily advice post in Amharic",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "advice": { "type": "string" },
+        "explanation": { "type": "string" },
+        "dailyAction": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "imagePrompt": { "type": "string" },
+        "publicationDate": { "type": "string" },
+        "published": { "type": "boolean" },
+        "createdBy": { "type": "string" },
+        "reactionCount": { "type": "integer" },
+        "commentCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "advice", "dailyAction", "category", "publicationDate", "createdAt"]
+    },
+    "Reaction": {
+      "title": "Reaction",
+      "description": "User reaction on an advice post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adviceId": { "type": "string" },
+        "userId": { "type": "string" },
+        "reactionType": { "type": "string", "enum": ["like", "love", "helpful", "inspirational"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adviceId", "userId", "reactionType", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User comment on an advice post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adviceId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "status": { "type": "string", "enum": ["visible", "hidden"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adviceId", "userId", "userName", "text", "createdAt"]
+    },
+    "Favorite": {
+      "title": "Favorite",
+      "description": "Saved favorite advice for a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adviceId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adviceId", "userId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/advice/{adviceId}": {
+      "schema": "AdvicePost",
+      "description": "Daily advice collection"
+    },
+    "/reactions/{reactionId}": {
+      "schema": "Reaction",
+      "description": "User reactions collection"
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Advice comments collection"
+    },
+    "/favorites/{favoriteId}": {
+      "schema": "Favorite",
+      "description": "User saved favorites collection"
+    }
+  }
+}
