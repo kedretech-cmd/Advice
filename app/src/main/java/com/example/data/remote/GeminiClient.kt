@@ -37,7 +37,7 @@ object GeminiClient {
         val apiKey = BuildConfig.GEMINI_API_KEY
         if (!isApiKeyConfigured()) {
             return@withContext Result.failure(
-                IllegalStateException("የGemini API ቁልፍ (GEMINI_API_KEY) አልተዘጋጀም። እባክዎ በSecrets panel ውስጥ ያስገቡ።")
+                IllegalStateException("የ Kedre AI API ቁልፍ (GEMINI_API_KEY) አልተዘጋጀም። እባክዎ በSecrets panel ውስጥ ያስገቡ።")
             )
         }
 
@@ -119,7 +119,7 @@ object GeminiClient {
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
                 val errBody = response.body?.string().orEmpty()
-                return@withContext Result.failure(Exception("Gemini API ጥሪ አልተሳካም (ኮድ ${response.code}): $errBody"))
+                return@withContext Result.failure(Exception("Kedre AI API ጥሪ አልተሳካም (ኮድ ${response.code}): $errBody"))
             }
 
             val responseBodyString = response.body?.string().orEmpty()

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
@@ -75,8 +76,60 @@ import com.example.ui.viewmodel.GenerationUiState
 @Composable
 fun AdminScreen(
     viewModel: AdviceViewModel,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    if (!viewModel.isAdmin) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(PureWhite)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFEF2F2)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = Color(0xFFEF4444),
+                    modifier = Modifier.size(36.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "የአስተዳዳሪ ፈቃድ ያስፈልጋል",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "ይህ የአስተዳደር ክፍል ለዋና አስተዳዳሪ (kedretech@gmail.com) ብቻ የተፈቀደ ነው።",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GrayTextSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            if (onBack != null) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = onBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("ወደ ዳሽቦርድ ተመለስ")
+                }
+            }
+        }
+        return
+    }
+
     val todayList by viewModel.todayAdviceList.collectAsState()
     val allUsers by viewModel.allUsersList.collectAsState()
     val generationState by viewModel.generationState.collectAsState()
@@ -113,6 +166,16 @@ fun AdminScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -136,7 +199,7 @@ fun AdminScreen(
                             color = Color.Black
                         )
                         Text(
-                            text = "AI ማመንጫ • የይዘት አስተዳደር • ተጠቃሚዎች",
+                            text = "Kedre AI ማመንጫ • የይዘት አስተዳደር • ተጠቃሚዎች",
                             style = MaterialTheme.typography.bodySmall,
                             color = GrayTextSecondary
                         )
@@ -206,7 +269,7 @@ fun AdminScreen(
                             StatCard(
                                 title = "AI ሁኔታ",
                                 value = if (viewModel.isGeminiKeyReady) "ዝግጁ" else "ነባሪ",
-                                subtitle = "gemini-3.5",
+                                subtitle = "Kedre AI",
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -235,7 +298,7 @@ fun AdminScreen(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "Google Gemini 3.5 Flash",
+                                            text = "Kedre AI Engine",
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.Black
@@ -259,7 +322,7 @@ fun AdminScreen(
                                 Spacer(modifier = Modifier.height(6.dp))
 
                                 Text(
-                                    text = "ሞዴል: gemini-3.5-flash • ቋንቋ: አማርኛ (10 የተለያዩ ዘርፎች)",
+                                    text = "ሞዴል: Kedre AI Engine • ቋንቋ: አማርኛ (10 የተለያዩ ዘርፎች)",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = GrayTextSecondary
                                 )
@@ -285,7 +348,7 @@ fun AdminScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "የዕለት 10 ምክሮች ማመንጫ",
+                                        text = "የዕለት 10 ምክሮች በ Kedre AI ማመንጫ",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.Black
@@ -295,7 +358,7 @@ fun AdminScreen(
                                 Spacer(modifier = Modifier.height(6.dp))
 
                                 Text(
-                                    text = "የዛሬን 10 ምክሮች በGemini AI ያፍልቁ ወይም ለየት ያለ የትኩረት ርዕስ ያስገቡ።",
+                                    text = "የዛሬን 10 ምክሮች በ Kedre AI ያፍልቁ ወይም ለየት ያለ የትኩረት ርዕስ ያስገቡ።",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = GrayTextSecondary
                                 )
@@ -345,11 +408,11 @@ fun AdminScreen(
                                             color = PureWhite
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("ምክሮችን በማመንጨት ላይ...", color = PureWhite)
+                                        Text("ምክሮችን በ Kedre AI በማመንጨት ላይ...", color = PureWhite)
                                     } else {
                                         Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp), tint = PureWhite)
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("አዲስ 10 ምክሮች አፍልቅ (Generate)", fontWeight = FontWeight.Bold, color = PureWhite)
+                                        Text("አዲስ 10 ምክሮች በ Kedre AI አፍልቅ (Generate)", fontWeight = FontWeight.Bold, color = PureWhite)
                                     }
                                 }
                             }

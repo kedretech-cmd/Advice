@@ -215,17 +215,21 @@ class AdviceViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun generateNewAdviceWithGemini(customTopic: String? = null) {
+        if (!isAdmin) {
+            _generationState.value = GenerationUiState.Error("ይህ ተግባር ለአስተዳዳሪ ብቻ የተፈቀደ ነው።")
+            return
+        }
         viewModelScope.launch {
             _generationState.value = GenerationUiState.Loading(
-                if (customTopic.isNullOrBlank()) "አዲስ 10 የዕለት ምክሮችን ከGemini AI በማፍለቅ ላይ..."
-                else "በርዕስ '$customTopic' ላይ ምክር በማፍለቅ ላይ..."
+                if (customTopic.isNullOrBlank()) "አዲስ 10 የዕለት ምክሮችን ከ Kedre AI በማፍለቅ ላይ..."
+                else "በርዕስ '$customTopic' ላይ በ Kedre AI ምክር በማፍለቅ ላይ..."
             )
             val result = localRepository.forceGenerateTodayAdvice(customTopic)
             if (result.isSuccess) {
                 val list = result.getOrNull().orEmpty()
                 _generationState.value = GenerationUiState.Success(
                     list.size,
-                    "አዳዲስ 10 ምክሮች በተሳካ ሁኔታ ተፈጥረዋል!"
+                    "አዳዲስ 10 ምክሮች በ Kedre AI በተሳካ ሁኔታ ተፈጥረዋል!"
                 )
                 syncAdviceToFirestore(list)
             } else {
@@ -361,6 +365,10 @@ class AdviceViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun updateAdvice(advice: DailyAdviceEntity) {
+        if (!isAdmin) {
+            android.util.Log.w("AdviceViewModel", "Unauthorized updateAdvice attempt by non-admin")
+            return
+        }
         viewModelScope.launch {
             localRepository.updateAdvice(advice)
             try {
@@ -384,6 +392,10 @@ class AdviceViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun deleteAdvice(advice: DailyAdviceEntity) {
+        if (!isAdmin) {
+            android.util.Log.w("AdviceViewModel", "Unauthorized deleteAdvice attempt by non-admin")
+            return
+        }
         viewModelScope.launch {
             localRepository.deleteAdvice(advice)
             try {

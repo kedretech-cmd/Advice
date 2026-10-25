@@ -40,12 +40,15 @@ import com.example.ui.theme.DailyAdviceTheme
 import com.example.ui.theme.EthiopianGreenPrimary
 import com.example.ui.viewmodel.AdviceViewModel
 
+import androidx.compose.material.icons.filled.Dashboard
+import com.example.ui.screens.UserDashboardScreen
+
 enum class MainNavTab(val amharicTitle: String, val icon: ImageVector, val tag: String) {
     HOME("ዋና ገጽ", Icons.Default.Home, "nav_tab_home"),
     CATEGORIES("ዘርፎች", Icons.Default.Category, "nav_tab_categories"),
     ACTIONS("ተግባራት", Icons.Default.TaskAlt, "nav_tab_actions"),
     FAVORITES("የተወደዱ", Icons.Default.Bookmark, "nav_tab_favorites"),
-    ADMIN("አስተዳደር", Icons.Default.AdminPanelSettings, "nav_tab_admin")
+    DASHBOARD("ዳሽቦርድ", Icons.Default.Dashboard, "nav_tab_dashboard")
 }
 
 class MainActivity : ComponentActivity() {
@@ -67,6 +70,9 @@ class MainActivity : ComponentActivity() {
 fun MainAppContent(viewModel: AdviceViewModel) {
     var currentTab by remember { mutableStateOf(MainNavTab.HOME) }
     var selectedDetailItem by remember { mutableStateOf<DailyAdviceEntity?>(null) }
+    var showAdminScreen by remember { mutableStateOf(false) }
+
+    val isAdmin = viewModel.isAdmin
 
     // If detail screen is open, back handler pops detail
     if (selectedDetailItem != null) {
@@ -76,10 +82,14 @@ fun MainAppContent(viewModel: AdviceViewModel) {
             onBack = { selectedDetailItem = null }
         )
     } else {
-        // If on secondary tab, back button returns to Home tab
-        if (currentTab != MainNavTab.HOME) {
+        // If on secondary tab or in admin screen, back button handles state
+        if (currentTab != MainNavTab.HOME || showAdminScreen) {
             BackHandler {
-                currentTab = MainNavTab.HOME
+                if (showAdminScreen) {
+                    showAdminScreen = false
+                } else {
+                    currentTab = MainNavTab.HOME
+                }
             }
         }
 
@@ -91,21 +101,29 @@ fun MainAppContent(viewModel: AdviceViewModel) {
                 ) {
                     MainNavTab.entries.forEach { tab ->
                         val selected = currentTab == tab
+                        val tabTitle = if (tab == MainNavTab.DASHBOARD && isAdmin) "አስተዳደር" else tab.amharicTitle
+                        val tabIcon = if (tab == MainNavTab.DASHBOARD && isAdmin) Icons.Default.AdminPanelSettings else tab.icon
+
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
                                 if (currentTab != tab) {
                                     currentTab = tab
+                                    if (tab == MainNavTab.DASHBOARD && isAdmin) {
+                                        showAdminScreen = true
+                                    } else {
+                                        showAdminScreen = false
+                                    }
                                 }
                             },
                             icon = {
                                 Icon(
-                                    imageVector = tab.icon,
-                                    contentDescription = tab.amharicTitle
+                                    imageVector = tabIcon,
+                                    contentDescription = tabTitle
                                 )
                             },
                             label = {
-                                Text(text = tab.amharicTitle)
+                                Text(text = tabTitle)
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 indicatorColor = EthiopianGreenPrimary.copy(alpha = 0.2f),
@@ -151,10 +169,19 @@ fun MainAppContent(viewModel: AdviceViewModel) {
                             onNavigateToDetail = { selectedDetailItem = it }
                         )
                     }
-                    MainNavTab.ADMIN -> {
-                        AdminScreen(
-                            viewModel = viewModel
-                        )
+                    MainNavTab.DASHBOARD -> {
+                        if (isAdmin && showAdminScreen) {
+                            AdminScreen(
+                                viewModel = viewModel,
+                                onBack = { showAdminScreen = false }
+                            )
+                        } else {
+                            UserDashboardScreen(
+                                viewModel = viewModel,
+                                onNavigateToTab = { currentTab = it },
+                                onOpenAdminDashboard = { showAdminScreen = true }
+                            )
+                        }
                     }
                 }
             }
