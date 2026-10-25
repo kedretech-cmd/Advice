@@ -69,11 +69,14 @@ import com.example.ui.theme.PrimaryGreen
 import com.example.ui.theme.PureWhite
 import com.example.ui.viewmodel.AdviceViewModel
 
+import androidx.compose.material.icons.filled.Menu
+
 @Composable
 fun UserDashboardScreen(
     viewModel: AdviceViewModel,
     onNavigateToTab: (MainNavTab) -> Unit,
     onOpenAdminDashboard: () -> Unit = {},
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
@@ -111,11 +114,22 @@ fun UserDashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onOpenDrawer,
+                        modifier = Modifier.testTag("dashboard_hamburger_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "ምናሌ ክፈት (Open menu)",
+                            tint = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier
                             .size(38.dp)
@@ -130,7 +144,7 @@ fun UserDashboardScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
                             text = "ዳሽቦርድ (Dashboard)",

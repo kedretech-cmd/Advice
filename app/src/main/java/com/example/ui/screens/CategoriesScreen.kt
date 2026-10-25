@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.IconButton
 import com.example.data.model.AdviceCategory
 import com.example.ui.theme.EthiopianGreenPrimary
 import com.example.ui.viewmodel.AdviceViewModel
@@ -45,6 +47,7 @@ import com.example.ui.viewmodel.AdviceViewModel
 fun CategoriesScreen(
     viewModel: AdviceViewModel,
     onCategoryClick: (AdviceCategory) -> Unit,
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val allAdvice by viewModel.allAdviceList.collectAsState()
@@ -62,9 +65,20 @@ fun CategoriesScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onOpenDrawer,
+                    modifier = Modifier.testTag("categories_hamburger_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "ምናሌ ክፈት (Open menu)",
+                        tint = Color.Black
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
                 Box(
                     modifier = Modifier
                         .size(36.dp)

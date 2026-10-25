@@ -63,10 +63,13 @@ import com.example.ui.theme.PureWhite
 import com.example.ui.viewmodel.AdviceViewModel
 import com.example.ui.viewmodel.GenerationUiState
 
+import androidx.compose.material.icons.filled.Menu
+
 @Composable
 fun HomeScreen(
     viewModel: AdviceViewModel,
     onNavigateToDetail: (DailyAdviceEntity) -> Unit,
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val adviceList by viewModel.filteredTodayAdvice.collectAsState()
@@ -116,18 +119,31 @@ fun HomeScreen(
             color = PureWhite,
             shadowElevation = 0.5.dp
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "የዕለቱ 10 ምክሮች",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = onOpenDrawer,
+                            modifier = Modifier.testTag("hamburger_menu_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "ምናሌ ክፈት (Open menu)",
+                                tint = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "የዕለቱ 10 ምክሮች",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // User Profile / Sign In

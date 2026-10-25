@@ -41,7 +41,15 @@ import com.example.ui.theme.EthiopianGreenPrimary
 import com.example.ui.viewmodel.AdviceViewModel
 
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.ui.components.AppNavigationDrawerSheet
+import com.example.ui.components.AuthDialog
 import com.example.ui.screens.UserDashboardScreen
+import kotlinx.coroutines.launch
 
 enum class MainNavTab(val amharicTitle: String, val icon: ImageVector, val tag: String) {
     HOME("ዋና ገጽ", Icons.Default.Home, "nav_tab_home"),
@@ -71,8 +79,20 @@ fun MainAppContent(viewModel: AdviceViewModel) {
     var currentTab by remember { mutableStateOf(MainNavTab.HOME) }
     var selectedDetailItem by remember { mutableStateOf<DailyAdviceEntity?>(null) }
     var showAdminScreen by remember { mutableStateOf(false) }
+    var showAuthDialog by remember { mutableStateOf(false) }
 
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
     val isAdmin = viewModel.isAdmin
+
+    if (showAuthDialog) {
+        val userProfile by viewModel.userProfile.collectAsState()
+        AuthDialog(
+            userProfile = userProfile,
+            onDismiss = { showAuthDialog = false },
+            onAuthSuccess = { showAuthDialog = false }
+        )
+    }
 
     // If detail screen is open, back handler pops detail
     if (selectedDetailItem != null) {
@@ -82,105 +102,144 @@ fun MainAppContent(viewModel: AdviceViewModel) {
             onBack = { selectedDetailItem = null }
         )
     } else {
-        // If on secondary tab or in admin screen, back button handles state
-        if (currentTab != MainNavTab.HOME || showAdminScreen) {
+        // Back press handling hierarchy:
+        // 1. If drawer is open -> close drawer
+        // 2. If admin screen is open -> close admin screen
+        // 3. If on secondary tab -> return to HOME tab
+        if (drawerState.isOpen) {
             BackHandler {
-                if (showAdminScreen) {
-                    showAdminScreen = false
-                } else {
-                    currentTab = MainNavTab.HOME
-                }
+                coroutineScope.launch { drawerState.close() }
+            }
+        } else if (showAdminScreen) {
+            BackHandler {
+                showAdminScreen = false
+            }
+        } else if (currentTab != MainNavTab.HOME) {
+            BackHandler {
+                currentTab = MainNavTab.HOME
             }
         }
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                NavigationBar(
-                    modifier = Modifier.testTag("bottom_nav_bar")
-                ) {
-                    MainNavTab.entries.forEach { tab ->
-                        val selected = currentTab == tab
-                        val tabTitle = if (tab == MainNavTab.DASHBOARD && isAdmin) "አስተዳደር" else tab.amharicTitle
-                        val tabIcon = if (tab == MainNavTab.DASHBOARD && isAdmin) Icons.Default.AdminPanelSettings else tab.icon
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            gesturesEnabled = true,
+            drawerContent = {
+                AppNavigationDrawerSheet(
+                    viewModel = viewModel,
+                    currentTab = currentTab,
+                    isAdminScreenOpen = showAdminScreen,
+                    onSelectTab = { tab ->
+                        currentTab = tab
+                        showAdminScreen = false
+                    },
+                    onOpenAdminScreen = {
+                        if (isAdmin) {
+                            showAdminScreen = true
+                        }
+                    },
+                    onCloseDrawer = {
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    onShowAuthDialog = {
+                        showAuthDialog = true
+                    }
+                )
+            }
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                bottomBar = {
+                    NavigationBar(
+                        modifier = Modifier.testTag("bottom_nav_bar")
+                    ) {
+                        MainNavTab.entries.forEach { tab ->
+                            val selected = currentTab == tab && !showAdminScreen
+                            val tabTitle = if (tab == MainNavTab.DASHBOARD && isAdmin) "አስተዳደር" else tab.amharicTitle
+                            val tabIcon = if (tab == MainNavTab.DASHBOARD && isAdmin) Icons.Default.AdminPanelSettings else tab.icon
 
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                if (currentTab != tab) {
-                                    currentTab = tab
-                                    if (tab == MainNavTab.DASHBOARD && isAdmin) {
-                                        showAdminScreen = true
-                                    } else {
-                                        showAdminScreen = false
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    if (currentTab != tab || showAdminScreen) {
+                                        currentTab = tab
+                                        if (tab == MainNavTab.DASHBOARD && isAdmin) {
+                                            showAdminScreen = true
+                                        } else {
+                                            showAdminScreen = false
+                                        }
                                     }
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = tabIcon,
-                                    contentDescription = tabTitle
-                                )
-                            },
-                            label = {
-                                Text(text = tabTitle)
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = EthiopianGreenPrimary.copy(alpha = 0.2f),
-                                selectedIconColor = EthiopianGreenPrimary,
-                                selectedTextColor = EthiopianGreenPrimary
-                            ),
-                            modifier = Modifier.testTag(tab.tag)
-                        )
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = tabIcon,
+                                        contentDescription = tabTitle
+                                    )
+                                },
+                                label = {
+                                    Text(text = tabTitle)
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = EthiopianGreenPrimary.copy(alpha = 0.2f),
+                                    selectedIconColor = EthiopianGreenPrimary,
+                                    selectedTextColor = EthiopianGreenPrimary
+                                ),
+                                modifier = Modifier.testTag(tab.tag)
+                            )
+                        }
                     }
                 }
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                when (currentTab) {
-                    MainNavTab.HOME -> {
-                        HomeScreen(
-                            viewModel = viewModel,
-                            onNavigateToDetail = { selectedDetailItem = it }
-                        )
-                    }
-                    MainNavTab.CATEGORIES -> {
-                        CategoriesScreen(
-                            viewModel = viewModel,
-                            onCategoryClick = { category ->
-                                viewModel.setCategoryFilter(category.key)
-                                currentTab = MainNavTab.HOME
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    when (currentTab) {
+                        MainNavTab.HOME -> {
+                            HomeScreen(
+                                viewModel = viewModel,
+                                onNavigateToDetail = { selectedDetailItem = it },
+                                onOpenDrawer = { coroutineScope.launch { drawerState.open() } }
+                            )
+                        }
+                        MainNavTab.CATEGORIES -> {
+                            CategoriesScreen(
+                                viewModel = viewModel,
+                                onCategoryClick = { category ->
+                                    viewModel.setCategoryFilter(category.key)
+                                    currentTab = MainNavTab.HOME
+                                },
+                                onOpenDrawer = { coroutineScope.launch { drawerState.open() } }
+                            )
+                        }
+                        MainNavTab.ACTIONS -> {
+                            DailyActionsScreen(
+                                viewModel = viewModel,
+                                onNavigateToDetail = { selectedDetailItem = it },
+                                onOpenDrawer = { coroutineScope.launch { drawerState.open() } }
+                            )
+                        }
+                        MainNavTab.FAVORITES -> {
+                            FavoritesScreen(
+                                viewModel = viewModel,
+                                onNavigateToDetail = { selectedDetailItem = it },
+                                onOpenDrawer = { coroutineScope.launch { drawerState.open() } }
+                            )
+                        }
+                        MainNavTab.DASHBOARD -> {
+                            if (isAdmin && showAdminScreen) {
+                                AdminScreen(
+                                    viewModel = viewModel,
+                                    onBack = { showAdminScreen = false }
+                                )
+                            } else {
+                                UserDashboardScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToTab = { currentTab = it },
+                                    onOpenAdminDashboard = { showAdminScreen = true },
+                                    onOpenDrawer = { coroutineScope.launch { drawerState.open() } }
+                                )
                             }
-                        )
-                    }
-                    MainNavTab.ACTIONS -> {
-                        DailyActionsScreen(
-                            viewModel = viewModel,
-                            onNavigateToDetail = { selectedDetailItem = it }
-                        )
-                    }
-                    MainNavTab.FAVORITES -> {
-                        FavoritesScreen(
-                            viewModel = viewModel,
-                            onNavigateToDetail = { selectedDetailItem = it }
-                        )
-                    }
-                    MainNavTab.DASHBOARD -> {
-                        if (isAdmin && showAdminScreen) {
-                            AdminScreen(
-                                viewModel = viewModel,
-                                onBack = { showAdminScreen = false }
-                            )
-                        } else {
-                            UserDashboardScreen(
-                                viewModel = viewModel,
-                                onNavigateToTab = { currentTab = it },
-                                onOpenAdminDashboard = { showAdminScreen = true }
-                            )
                         }
                     }
                 }

@@ -42,10 +42,15 @@ import com.example.ui.components.SocialShareDialog
 import com.example.ui.theme.EthiopianGold
 import com.example.ui.viewmodel.AdviceViewModel
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.IconButton
+
 @Composable
 fun FavoritesScreen(
     viewModel: AdviceViewModel,
     onNavigateToDetail: (DailyAdviceEntity) -> Unit,
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val favorites by viewModel.favoritesList.collectAsState()
@@ -73,9 +78,20 @@ fun FavoritesScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onOpenDrawer,
+                    modifier = Modifier.testTag("favorites_hamburger_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "ምናሌ ክፈት (Open menu)",
+                        tint = Color.Black
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
                 Box(
                     modifier = Modifier
                         .size(36.dp)

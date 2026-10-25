@@ -47,12 +47,15 @@ import com.example.data.model.DailyAdviceEntity
 import com.example.ui.components.DailyProgressCard
 import com.example.ui.theme.EthiopianGold
 import com.example.ui.theme.EthiopianGreenPrimary
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.IconButton
 import com.example.ui.viewmodel.AdviceViewModel
 
 @Composable
 fun DailyActionsScreen(
     viewModel: AdviceViewModel,
     onNavigateToDetail: (DailyAdviceEntity) -> Unit,
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val todayList by viewModel.todayAdviceList.collectAsState()
@@ -73,9 +76,20 @@ fun DailyActionsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onOpenDrawer,
+                    modifier = Modifier.testTag("actions_hamburger_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "ምናሌ ክፈት (Open menu)",
+                        tint = Color.Black
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
                 Box(
                     modifier = Modifier
                         .size(36.dp)
